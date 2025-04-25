@@ -19,7 +19,7 @@ ticket_medio = 300
 
 planilha_vtex = []
 
-def read_cep_ranges_from_csv(filename="faixa_cep_teste.csv"):
+def read_cep_ranges_from_csv(filename="faixa_cep.csv"):
     with open(filename, mode='r', encoding='utf-8-sig') as csvfile:  
         reader = csv.DictReader(csvfile, delimiter=';')  
         for row in reader:
@@ -106,5 +106,5 @@ def salvar_planilha_excel(dados, nome_arquivo="tabela_fretes_vtex.xlsx"):
 
 
 # Executar o processo
-read_cep_ranges_from_csv(filename="faixa_cep_teste.csv")
+read_cep_ranges_from_csv(filename="faixa_cep.csv")
 salvar_planilha_excel(planilha_vtex)
