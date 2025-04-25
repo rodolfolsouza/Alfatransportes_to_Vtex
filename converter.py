@@ -45,7 +45,7 @@ def read_cep_ranges_from_csv(filename="faixa_cep.csv"):
                         "Country": "BR",  # Valor padrão para Brasil
                         "MinimumValueInsurance": 0  # Valor padrão, ajustar conforme necessário
                     })
-                    time.sleep(.3)  
+                    time.sleep(1)  
 
 
 def calcula_valor_prazo(cep, peso):
