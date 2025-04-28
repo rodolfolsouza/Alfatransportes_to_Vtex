@@ -48,10 +48,12 @@ def read_cep_ranges_from_csv(filename="faixa_cep.csv"):
                     time.sleep(1)  
 
 
-def calcula_valor_prazo(cep, peso):
+def calcula_valor_prazo(cep, peso, max_retries=10, timeout=10):
+
     url = "https://api.alfatransportes.com.br/cotacao/v1.2/"
     headers = {
-        "Content-Type": "application/json",}
+        "Content-Type": "application/json",
+    }
     payload = {"idr":f"{API_ALFA}",
                "cliTip":"2",
                "cliCnpj":"",
@@ -64,23 +66,49 @@ def calcula_valor_prazo(cep, peso):
                "dtEmbarque":f"{hoje}",
                "cepRem":f"{CEP_LOCAL}",
                "modoJson":"1"}
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        data = response.json()
+    
+    # Implementação de retry com backoff exponencial
+    for attempt in range(1, max_retries + 1):
         try:
-            diasEntrega = data['cotacao']["emissao"]["diasEntrega"]
-            diasEntrega = diasEntrega.replace(" DIAS UTEIS", "")
-            diasEntrega = int(diasEntrega)
-            diasEntrega = f'{diasEntrega}.00:00:00'
-            valorTotal = data['cotacao']["emissao"]["valoresCotacao"]["valorTotal"]
-            return diasEntrega, valorTotal
-        except:
+            print(f"Tentativa {attempt} para CEP {cep} e peso {peso}...")
+            response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+            
+            if response.status_code == 200:
+                data = response.json()
+                try:
+                    diasEntrega = data['cotacao']["emissao"]["diasEntrega"]
+                    diasEntrega = diasEntrega.replace(" DIAS UTEIS", "")
+                    diasEntrega = int(diasEntrega)
+                    diasEntrega = f'{diasEntrega}.00:00:00'
+                    valorTotal = data['cotacao']["emissao"]["valoresCotacao"]["valorTotal"]
+                    return diasEntrega, valorTotal
+                except:
+                    print(f"Erro ao processar resposta para CEP {cep}")
+                    return False
+            else:
+                print(f"Status code: {response.status_code} para CEP {cep}")
+        
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, 
+                requests.exceptions.ConnectionError) as e:
+            # Cálculo do tempo de espera com backoff exponencial
+            wait_time = 2 ** attempt  # 2, 4, 8 segundos...
+            
+            if attempt < max_retries:
+                print(f"Erro de conexão na tentativa {attempt} para CEP {cep}: {str(e)}")
+                print(f"Aguardando {wait_time} segundos antes da próxima tentativa...")
+                time.sleep(wait_time)
+            else:
+                print(f"Falha após {max_retries} tentativas para CEP {cep}: {str(e)}")
+                return False
+        
+        except Exception as e:
+            print(f"Erro inesperado para CEP {cep}: {str(e)}")
             return False
+    
     return False
 
 
 def salvar_planilha_excel(dados, nome_arquivo="tabela_fretes_vtex.xlsx"):
-    """Converte os dados para um DataFrame do pandas e salva como Excel"""
     if not dados:
         print("Não há dados para salvar na planilha.")
         return
