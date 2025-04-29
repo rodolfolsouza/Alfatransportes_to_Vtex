@@ -11,7 +11,7 @@ import time
 dotenv.load_dotenv()
 API_ALFA = os.getenv("API_ALFA")
 CEP_LOCAL = os.getenv("CEP_LOCAL")
-faixa_de_pesos_inicial = [1,11,31]
+faixa_de_pesos_inicial = [0,10.001,30.001]
 faixa_de_pesos_final = [10,30,50]
 hoje = datetime.date.today()
 hoje = hoje.strftime("%Y-%m-%d")
@@ -35,14 +35,14 @@ def read_cep_ranges_from_csv(filename="faixa_cep.csv"):
                         "ZipCodeStart": cep_inicial,
                         "ZipCodeEnd": cep_final,
                         "PolygonName": "",
-                        "WeightStart": faixa_de_pesos_inicial[i],
-                        "WeightEnd": faixa_de_pesos_final[i],
+                        "WeightStart": faixa_de_pesos_inicial[i]*1000,
+                        "WeightEnd": faixa_de_pesos_final[i]*1000,
                         "AbsoluteMoneyCost": valorTotal,
                         "PricePercent": 2,  # Valor padrão, ajustar conforme necessário
                         "PriceByExtraWeight": 0,  # Valor padrão, ajustar conforme necessário
                         "MaxVolume": 0,  # Valor padrão, ajustar conforme necessário
                         "TimeCost": diasEntrega,
-                        "Country": "BR",  # Valor padrão para Brasil
+                        "Country": "BRA",  # Valor padrão para Brasil
                         "MinimumValueInsurance": 0  # Valor padrão, ajustar conforme necessário
                     })
                     time.sleep(1)  
